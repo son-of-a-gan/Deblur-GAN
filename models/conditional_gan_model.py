@@ -121,6 +121,7 @@ class ConditionalGAN(BaseModel):
     def get_current_errors(self):
         return OrderedDict([('G_GAN', self.loss_G_GAN.item()),
                             ('G_L1', self.loss_G_Content.item()),
+                            ('G_smooth', self.loss_G_Smoothness.item()),
                             ('D_real+fake', self.loss_D.item())
                             ])
 

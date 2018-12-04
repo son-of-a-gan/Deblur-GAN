@@ -19,11 +19,11 @@ class SmoothnessLoss():
 		pass
 
 	def get_loss(self, fakeIm, realIm):
-		pdb.set_trace()
+		#pdb.set_trace()
 		batch_size = fakeIm.shape[0]
-		fake_grad = np.array(np.gradient(fakeIm.data().cpu().numpy(), axis=(1,2)))
+		fake_grad = np.array(np.gradient(fakeIm.detach().cpu().numpy(), axis=(2,3)))
 		fake_grad = np.swapaxes(fake_grad, 0 ,1)
-		real_grad = np.array(np.gradient(realIm.data().cpu().numpy(), axis=(1,2)))
+		real_grad = np.array(np.gradient(realIm.detach().cpu().numpy(), axis=(2,3)))
 		real_grad = np.swapaxes(real_grad, 0 ,1)
 
 		np_loss = np.linalg.norm((np.exp(-1 * real_grad) * fake_grad).reshape(batch_size, -1), axis=1)
