@@ -3,6 +3,8 @@ datasets/gopro_large/*
 datasets/test/*
 checkpoints/*
 results/*
+datasets/mapillary_test
+pretrained_checkpoints
 
 __pycache__
 */__pycache__

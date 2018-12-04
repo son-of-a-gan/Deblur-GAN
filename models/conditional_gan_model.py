@@ -23,6 +23,7 @@ class ConditionalGAN(BaseModel):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
         # define tensors
+        # possible problem here for test on full size images
         self.input_A = self.Tensor(opt.batchSize, opt.input_nc,
                                    opt.fineSize, opt.fineSize)
         self.input_B = self.Tensor(opt.batchSize, opt.output_nc,
