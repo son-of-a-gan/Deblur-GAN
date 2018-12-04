@@ -7,6 +7,7 @@ from data.image_folder import make_dataset
 from PIL import Image
 
 
+
 class AlignedDataset(BaseDataset):
     def initialize(self, opt):
         self.opt = opt
@@ -26,7 +27,14 @@ class AlignedDataset(BaseDataset):
     def __getitem__(self, index):
         AB_path = self.AB_paths[index]
         AB = Image.open(AB_path).convert('RGB')
-        AB = AB.resize((self.opt.loadSizeX * 2, self.opt.loadSizeY), Image.BICUBIC)
+        # AB = AB.resize(
+        #     (self.opt.loadSizeX * 2, self.opt.loadSizeY), Image.BICUBIC)
+        # AARON: change to keep original aspect ratio, use square crop afterwards
+        width, height = AB.size
+        aspect_ratio = width / height
+        AB = AB.resize(
+            (int(aspect_ratio * self.opt.loadSizeY), self.opt.loadSizeY),
+            Image.BICUBIC)
         AB = self.transform(AB)
 
         w_total = AB.size(2)
