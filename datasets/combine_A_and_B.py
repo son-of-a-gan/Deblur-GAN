@@ -10,12 +10,17 @@ parser.add_argument('--fold_B', dest='fold_B', help='input directory for image B
 parser.add_argument('--fold_AB', dest='fold_AB', help='output directory', type=str, default='../dataset/test_AB')
 parser.add_argument('--num_imgs', dest='num_imgs', help='number of images',type=int, default=1000000)
 parser.add_argument('--use_AB', dest='use_AB', help='if true: (0001_A, 0001_B) to (0001_AB)',action='store_true')
+parser.add_argument('--data_split', dest='data_split', help='Is the data split into train/val/test',type=bool, default=False)
+
 args = parser.parse_args()
 
 for arg in vars(args):
     print('[%s] = ' % arg,  getattr(args, arg))
 
-splits = os.listdir(args.fold_A)
+if args.data_split: 
+  splits = os.listdir(args.fold_A)
+else:
+  splits = ['']
 
 for sp in splits:
     img_fold_A = os.path.join(args.fold_A, sp)
