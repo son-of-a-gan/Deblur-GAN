@@ -5,6 +5,7 @@ checkpoints/*
 results/*
 datasets/mapillary_test
 pretrained_checkpoints
+pretrained_results
 
 __pycache__
 */__pycache__

@@ -9,7 +9,7 @@ from util import html
 from util.metrics import PSNR
 from util.metrics import SSIM
 from PIL import Image
-import pdb
+import torch
 
 opt = TestOptions().parse()
 opt.nThreads = 1   # test code only supports nThreads = 1
@@ -34,10 +34,10 @@ counter = 0
 for i, data in enumerate(dataset):
     if i >= opt.how_many:
         break
-    # pdb.set_trace()
     counter = i
     model.set_input(data)
-    model.test()
+    with torch.no_grad():
+        model.test()
     visuals = model.get_current_visuals()
     #avgPSNR += PSNR(visuals['fake_B'],visuals['real_B'])
     #pilFake = Image.fromarray(visuals['fake_B'])

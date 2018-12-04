@@ -4,6 +4,12 @@ from collections import OrderedDict
 
 
 class BaseModel():
+    def __init__(self):
+        self.real_A = None
+        self.real_B = None
+        self.fake_B = None
+        return
+
     def name(self):
         return 'BaseModel'
 
