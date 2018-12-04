@@ -8,6 +8,7 @@ import torchvision.models as models
 import util.util as util
 from util.image_pool import ImagePool
 from torch.autograd import Variable
+import pdb
 ###############################################################################
 # Functions
 ###############################################################################
@@ -18,6 +19,7 @@ class SmoothnessLoss():
 		pass
 
 	def get_loss(self, fakeIm, realIm):
+		pdb.set_trace()
 		batch_size = fakeIm.shape[0]
 		fake_grad = np.array(np.gradient(fakeIm.data().cpu().numpy(), axis=(1,2)))
 		fake_grad = np.swapaxes(fake_grad, 0 ,1)
