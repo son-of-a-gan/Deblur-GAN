@@ -7,7 +7,6 @@ from data.image_folder import make_dataset
 from PIL import Image
 
 
-
 class AlignedDataset(BaseDataset):
     def initialize(self, opt):
         self.opt = opt
@@ -30,11 +29,20 @@ class AlignedDataset(BaseDataset):
         # AB = AB.resize(
         #     (self.opt.loadSizeX * 2, self.opt.loadSizeY), Image.BICUBIC)
         # AARON: change to keep original aspect ratio, use square crop afterwards
+        # by default self.opt.loadSizeY = 360 < self.opt.loadSizeX,
+        # if the image is in potrait, scale the shorter edge to 360
         width, height = AB.size
-        aspect_ratio = width / height
-        AB = AB.resize(
-            (int(aspect_ratio * self.opt.loadSizeY), self.opt.loadSizeY),
-            Image.BICUBIC)
+        if width > height:
+            aspect_ratio = width / height
+            AB = AB.resize(
+                (int(aspect_ratio * self.opt.loadSizeY), self.opt.loadSizeY),
+                Image.BICUBIC)
+        else:
+            aspect_ratio = height / width
+            AB = AB.resize(
+                (self.opt.loadSizeY, int(aspect_ratio * self.opt.loadSizeY)),
+                Image.BICUBIC)
+
         AB = self.transform(AB)
 
         w_total = AB.size(2)
