@@ -7,6 +7,7 @@ from data.image_folder import make_dataset
 from PIL import Image
 
 
+
 class AlignedDataset(BaseDataset):
     def initialize(self, opt):
         self.opt = opt
