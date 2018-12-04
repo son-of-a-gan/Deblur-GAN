@@ -56,7 +56,7 @@ class ConditionalGAN(BaseModel):
             self.criticUpdates = 5 if opt.gan_type == 'wgan-gp' else 1
 
             # define loss functions
-            self.discLoss, self.contentLoss = init_loss(opt, self.Tensor)
+            self.discLoss, self.contentLoss, self.smoothnessLoss = init_loss(opt, self.Tensor)
 
         print('---------- Networks initialized -------------')
         networks.print_network(self.netG)
@@ -100,7 +100,9 @@ class ConditionalGAN(BaseModel):
         self.loss_G_Content = self.contentLoss.get_loss(
             self.fake_B, self.real_B) * self.opt.lambda_A
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_Content
+        self.loss_G_Smoothness = self.smoothnessLoss.get_loss(self.fake_B, self.real_B)
+
+        self.loss_G = self.loss_G_GAN + self.loss_G_Content + self.loss_G_Smoothness
 
         self.loss_G.backward()
 
