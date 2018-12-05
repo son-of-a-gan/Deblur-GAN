@@ -59,7 +59,6 @@ class ScaledPerceptualLoss():
   def get_loss(self, fakeIm, realIm):
     losses = []
     
-    pdb.set_trace()
     inputFake = fakeIm
     inputReal = realIm
     for i, model in enumerate(self.contentFuncs):
@@ -89,7 +88,6 @@ class ScaledPerceptualLoss():
 class PerceptualLoss():
 
   def contentFunc(self):
-    pdb.set_trace()
     conv_3_3_layer = 14
     cnn = models.vgg19(pretrained=True).features
     cnn = cnn.cuda()
@@ -106,7 +104,6 @@ class PerceptualLoss():
     self.contentFunc = self.contentFunc()
       
   def get_loss(self, fakeIm, realIm):
-    pdb.set_trace()
     f_fake = self.contentFunc.forward(fakeIm)
     f_real = self.contentFunc.forward(realIm)
     f_real_no_grad = f_real.detach()
