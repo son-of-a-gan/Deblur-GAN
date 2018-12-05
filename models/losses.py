@@ -8,6 +8,7 @@ import torchvision.models as models
 import util.util as util
 from util.image_pool import ImagePool
 from torch.autograd import Variable
+import pdb
 ###############################################################################
 # Functions
 ###############################################################################
@@ -19,31 +20,105 @@ class ContentLoss():
 	def get_loss(self, fakeIm, realIm):
 		return self.criterion(fakeIm, realIm)
 
-class PerceptualLoss():
+class ScaledPerceptualLoss():
+
+  def contentFunc1(self):
+    conv_3_3_layer = 7
+    cnn = models.vgg19(pretrained=True).features
+    cnn = cnn.cuda()
+    model = nn.Sequential()
+    model = model.cuda()
+    for i,layer in enumerate(list(cnn)):
+      model.add_module(str(i),layer)
+      if i == conv_3_3_layer:
+        break
+    return model
+
+  def contentFunc2(self):
+    conv_3_3_layer = 10
+    cnn = models.vgg19(pretrained=True).features
+    cnn = cnn.cuda()
+    model = nn.Sequential()
+    model = model.cuda()
+    for i,layer in enumerate(list(cnn)):
+      model.add_module(str(i),layer)
+      if i == conv_3_3_layer:
+        break
+    return model
+   
+  def contentFunc3(self):
+    conv_3_3_layer = 14
+    cnn = models.vgg19(pretrained=True).features
+    cnn = cnn.cuda()
+    model = nn.Sequential()
+    model = model.cuda()
+    for i,layer in enumerate(list(cnn)):
+      model.add_module(str(i),layer)
+      if i == conv_3_3_layer:
+        break
+    return model
+    
+  def initialize(self, loss):
+    self.criterion = loss
+    self.contentFunc1 = self.contentFunc1()
+    self.contentFunc2 = self.contentFunc2()
+    self.contentFunc3 = self.contentFunc3()
+      
+  def get_loss(self, fakeIm, realIm):
+    #Get loss for scale 1
+    f1_fake = self.contentFunc1.forward(fakeIm)
+    f1_real = self.contentFunc1.forward(realIm)
+    f1_real_no_grad = f1_real.detach()
+    loss1 = self.criterion(f1_fake, f1_real_no_grad)
+
+    #Get loss for scale 2
+    f2_fake = self.contentFunc2.forward(fakeIm)
+    f2_real = self.contentFunc2.forward(realIm)
+    f2_real_no_grad = f2_real.detach()
+    loss2 = self.criterion(f2_fake, f2_real_no_grad)
+
+    #Get loss for scale 3
+    f3_fake = self.contentFunc3.forward(fakeIm)
+    f3_real = self.contentFunc3.forward(realIm)
+    f3_real_no_grad = f3_real.detach()
+    loss3 = self.criterion(f3_fake, f3_real_no_grad)
+
+    # There's been a lot of tuning to get the content loss to be the right magnitude.  
+    # Therefore we want to summ loss1, loss2, and loss3, but keep the same magnitude 
+    # as if had the vanilla perceptual loss.  For the final loss let's just average 
+    # the three losses
+    
+    loss = (loss1 + loss2 + loss3)/3
+
+    return loss
 	
-	def contentFunc(self):
-		conv_3_3_layer = 14
-		cnn = models.vgg19(pretrained=True).features
-		cnn = cnn.cuda()
-		model = nn.Sequential()
-		model = model.cuda()
-		for i,layer in enumerate(list(cnn)):
-			model.add_module(str(i),layer)
-			if i == conv_3_3_layer:
-				break
-		return model
-		
-	def initialize(self, loss):
-		self.criterion = loss
-		self.contentFunc = self.contentFunc()
-			
-	def get_loss(self, fakeIm, realIm):
-		f_fake = self.contentFunc.forward(fakeIm)
-		f_real = self.contentFunc.forward(realIm)
-		f_real_no_grad = f_real.detach()
-		loss = self.criterion(f_fake, f_real_no_grad)
-		return loss
-		
+class PerceptualLoss():
+
+  def contentFunc(self):
+    pdb.set_trace()
+    conv_3_3_layer = 14
+    cnn = models.vgg19(pretrained=True).features
+    cnn = cnn.cuda()
+    model = nn.Sequential()
+    model = model.cuda()
+    for i,layer in enumerate(list(cnn)):
+      model.add_module(str(i),layer)
+      if i == conv_3_3_layer:
+        break
+    return model
+    
+  def initialize(self, loss):
+    self.criterion = loss
+    self.contentFunc = self.contentFunc()
+      
+  def get_loss(self, fakeIm, realIm):
+    pdb.set_trace()
+    f_fake = self.contentFunc.forward(fakeIm)
+    f_real = self.contentFunc.forward(realIm)
+    f_real_no_grad = f_real.detach()
+    loss = self.criterion(f_fake, f_real_no_grad)
+    return loss
+	
 class GANLoss(nn.Module):
 	def __init__(self, use_l1=True, target_real_label=1.0, target_fake_label=0.0,
 				 tensor=torch.FloatTensor):
@@ -172,7 +247,7 @@ def init_loss(opt, tensor):
 	content_loss = None
 	
 	if opt.model == 'content_gan':
-		content_loss = PerceptualLoss()
+		content_loss = ScaledPerceptualLoss()
 		content_loss.initialize(nn.MSELoss())
 	elif opt.model == 'pix2pix':
 		content_loss = ContentLoss()
