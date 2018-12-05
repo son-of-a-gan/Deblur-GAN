@@ -30,9 +30,9 @@ class AlignedDataset(BaseDataset):
         #     (self.opt.loadSizeX * 2, self.opt.loadSizeY), Image.BICUBIC)
         # AARON: change to keep original aspect ratio, use square crop afterwards
         # by default self.opt.loadSizeY = 360 < self.opt.loadSizeX,
-        # if the image is in potrait, scale the shorter edge to 360
+        # if the image is in potrait, scale the shorter edge to 360 * 2 = 720
         width, height = AB.size
-        if width > height:
+        if width / 2 > height:
             aspect_ratio = width / height
             AB = AB.resize(
                 (int(aspect_ratio * self.opt.loadSizeY), self.opt.loadSizeY),
@@ -40,7 +40,7 @@ class AlignedDataset(BaseDataset):
         else:
             aspect_ratio = height / width
             AB = AB.resize(
-                (self.opt.loadSizeY * 2, int(aspect_ratio * self.opt.loadSizeY)),
+                (self.opt.loadSizeY * 2, int(aspect_ratio * self.opt.loadSizeY * 2)),
                 Image.BICUBIC)
 
         AB = self.transform(AB)
