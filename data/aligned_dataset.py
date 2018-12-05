@@ -40,7 +40,7 @@ class AlignedDataset(BaseDataset):
         else:
             aspect_ratio = height / width
             AB = AB.resize(
-                (self.opt.loadSizeY, int(aspect_ratio * self.opt.loadSizeY)),
+                (self.opt.loadSizeY * 2, int(aspect_ratio * self.opt.loadSizeY)),
                 Image.BICUBIC)
 
         AB = self.transform(AB)
