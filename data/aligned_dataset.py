@@ -5,8 +5,7 @@ import torch
 from data.base_dataset import BaseDataset
 from data.image_folder import make_dataset
 from PIL import Image
-
-
+import numpy as np
 
 class AlignedDataset(BaseDataset):
     def initialize(self, opt):
@@ -35,18 +34,33 @@ class AlignedDataset(BaseDataset):
         AB = AB.resize(
             (int(aspect_ratio * self.opt.loadSizeY), self.opt.loadSizeY),
             Image.BICUBIC)
-        AB = self.transform(AB)
 
-        w_total = AB.size(2)
+        w_total = AB.width
         w = int(w_total / 2)
-        h = AB.size(1)
-        w_offset = random.randint(0, max(0, w - self.opt.fineSize - 1))
-        h_offset = random.randint(0, max(0, h - self.opt.fineSize - 1))
+        h = AB.height
 
-        A = AB[:, h_offset:h_offset + self.opt.fineSize,
-               w_offset:w_offset + self.opt.fineSize]
-        B = AB[:, h_offset:h_offset + self.opt.fineSize,
-               w + w_offset:w + w_offset + self.opt.fineSize]
+        # DAVID[1]: Let's randomly sample h/w dimension here
+        sigma = 100 # hard coded
+        patch_size = int(np.random.normal(self.opt.fineSize, sigma))
+        patch_size = min(min(w,h)-1, patch_size)                # upper bound
+        patch_size = max(int(self.opt.fineSize/2), patch_size)  # lower bound
+        
+        # DAVID[1]: Now, we can get the location and crop the image to to it
+        w_offset = random.randint(0, max(0, w - patch_size - 1))
+        h_offset = random.randint(0, max(0, h - patch_size - 1))
+        
+        # DAVID[1]: Finally, crop and resize to original input dimension
+        A = AB.crop((w_offset, h_offset, 
+                     w_offset+patch_size, h_offset+patch_size))
+        A = A.resize((self.opt.fineSize, self.opt.fineSize), Image.BICUBIC)
+
+        B = AB.crop((w+w_offset, h_offset, 
+                     w+w_offset+patch_size, h_offset+patch_size))
+        B = B.resize((self.opt.fineSize, self.opt.fineSize), Image.BICUBIC)
+        
+        # PIL -> Tensor
+        A = self.transform(A)
+        B = self.transform(B)
 
         if (not self.opt.no_flip) and random.random() < 0.5:
             idx = [i for i in range(A.size(2) - 1, -1, -1)]
