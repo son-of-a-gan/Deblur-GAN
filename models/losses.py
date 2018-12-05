@@ -22,75 +22,69 @@ class ContentLoss():
 
 class ScaledPerceptualLoss():
 
-  def contentFunc1(self):
-    conv_3_3_layer = 7
-    cnn = models.vgg19(pretrained=True).features
-    cnn = cnn.cuda()
-    model = nn.Sequential()
-    model = model.cuda()
-    for i,layer in enumerate(list(cnn)):
-      model.add_module(str(i),layer)
-      if i == conv_3_3_layer:
-        break
-    return model
+  def contentFunc(self, f_layers):
+    # The goal of this function is to return a list of models that when composed together
+    # Can produce feature maps at the different f_layers
 
-  def contentFunc2(self):
-    conv_3_3_layer = 10
+    f_layers.sort() #sort layers so there in order.  Dum dum user protection.
+
     cnn = models.vgg19(pretrained=True).features
     cnn = cnn.cuda()
     model = nn.Sequential()
     model = model.cuda()
+    model_list = []
+ 
+    j_f = 0 #index of current feature map layer
+
     for i,layer in enumerate(list(cnn)):
       model.add_module(str(i),layer)
-      if i == conv_3_3_layer:
-        break
-    return model
-   
-  def contentFunc3(self):
-    conv_3_3_layer = 14
-    cnn = models.vgg19(pretrained=True).features
-    cnn = cnn.cuda()
-    model = nn.Sequential()
-    model = model.cuda()
-    for i,layer in enumerate(list(cnn)):
-      model.add_module(str(i),layer)
-      if i == conv_3_3_layer:
-        break
-    return model
-    
+      if i == f_layers[j_f]:
+        #Append the model to the list of models
+        model_list.append(model)
+        j_f += 1
+        if j_f == len(f_layers):
+          break
+
+        #Create a new model
+        model = nn.Sequential()
+        model = model.cuda()
+
+    return model_list
+
   def initialize(self, loss):
     self.criterion = loss
-    self.contentFunc1 = self.contentFunc1()
-    self.contentFunc2 = self.contentFunc2()
-    self.contentFunc3 = self.contentFunc3()
+    f_layers = [7, 10, 14] #The layers from vgg19 that we're extracting feature maps from
+    self.contentFuncs = self.contentFunc(f_layers)
       
   def get_loss(self, fakeIm, realIm):
-    #Get loss for scale 1
-    f1_fake = self.contentFunc1.forward(fakeIm)
-    f1_real = self.contentFunc1.forward(realIm)
-    f1_real_no_grad = f1_real.detach()
-    loss1 = self.criterion(f1_fake, f1_real_no_grad)
+    losses = []
+    
+    pdb.set_trace()
+    inputFake = fakeIm
+    inputReal = realIm
+    for i, model in enumerate(self.contentFuncs):
+      f_fake = model.forward(inputFake)
+      f_real = model.forward(inputReal)
+      f_real_no_grad = f_real.detach()
 
-    #Get loss for scale 2
-    f2_fake = self.contentFunc2.forward(fakeIm)
-    f2_real = self.contentFunc2.forward(realIm)
-    f2_real_no_grad = f2_real.detach()
-    loss2 = self.criterion(f2_fake, f2_real_no_grad)
+      loss = self.criterion(f_fake, f_real_no_grad)
+      losses.append(loss)
 
-    #Get loss for scale 3
-    f3_fake = self.contentFunc3.forward(fakeIm)
-    f3_real = self.contentFunc3.forward(realIm)
-    f3_real_no_grad = f3_real.detach()
-    loss3 = self.criterion(f3_fake, f3_real_no_grad)
+      inputFake = f_fake
+      inputReal = f_real
+
+
 
     # There's been a lot of tuning to get the content loss to be the right magnitude.  
     # Therefore we want to summ loss1, loss2, and loss3, but keep the same magnitude 
     # as if had the vanilla perceptual loss.  For the final loss let's just average 
     # the three losses
     
-    loss = (loss1 + loss2 + loss3)/3
+    totLoss = 0
+    for l in losses:
+      totLoss += l
 
-    return loss
+    return  totLoss/len(losses)
 	
 class PerceptualLoss():
 
