@@ -40,11 +40,10 @@ class AlignedDataset(BaseDataset):
         h = AB.height
 
         # DAVID[1]: Let's randomly sample h/w dimension here
-        sigma = 100 # hard coded
-        patch_size = int(np.random.normal(self.opt.fineSize, sigma))
+        patch_size = int(np.random.normal(self.opt.fineSize, self.opt.fineSizeSigma))
         patch_size = min(min(w,h)-1, patch_size)                # upper bound
         patch_size = max(int(self.opt.fineSize/2), patch_size)  # lower bound
-        
+
         # DAVID[1]: Now, we can get the location and crop the image to to it
         w_offset = random.randint(0, max(0, w - patch_size - 1))
         h_offset = random.randint(0, max(0, h - patch_size - 1))
