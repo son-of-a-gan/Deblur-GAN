@@ -53,7 +53,7 @@ class ScaledPerceptualLoss():
 
   def initialize(self, loss):
     self.criterion = loss
-    f_layers = [7, 10, 14] #The layers from vgg19 that we're extracting feature maps from
+    f_layers = [2, 7, 16, 25] #The layers from vgg19 that we're extracting feature maps from
     self.contentFuncs = self.contentFunc(f_layers)
       
   def get_loss(self, fakeIm, realIm):
@@ -82,7 +82,7 @@ class ScaledPerceptualLoss():
     # the three losses
     
 
-    return  loss
+    return  loss/numFeatureLayers
 	
 class PerceptualLoss():
 
