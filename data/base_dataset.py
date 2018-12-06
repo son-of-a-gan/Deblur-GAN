@@ -2,6 +2,7 @@ import torch.utils.data as data
 from PIL import Image
 import torchvision.transforms as transforms
 
+
 class BaseDataset(data.Dataset):
     def __init__(self):
         super(BaseDataset, self).__init__()
@@ -11,6 +12,7 @@ class BaseDataset(data.Dataset):
 
     def initialize(self, opt):
         pass
+
 
 def get_transform(opt):
     transform_list = []
@@ -27,6 +29,9 @@ def get_transform(opt):
         transform_list.append(transforms.Lambda(
             lambda img: __scale_width(img, opt.loadSizeX)))
         transform_list.append(transforms.RandomCrop(opt.fineSize))
+    elif opt.resize_or_crop == 'scale_long_edge_x':
+        transform_list.append(transforms.Lambda(
+            lambda img: __scale_long_edge(img, opt.loadSizeX)))
 
     if opt.isTrain and not opt.no_flip:
         transform_list.append(transforms.RandomHorizontalFlip())
@@ -36,6 +41,7 @@ def get_transform(opt):
                                             (0.5, 0.5, 0.5))]
     return transforms.Compose(transform_list)
 
+
 def __scale_width(img, target_width):
     ow, oh = img.size
     if (ow == target_width):
@@ -43,3 +49,22 @@ def __scale_width(img, target_width):
     w = target_width
     h = int(target_width * oh / ow)
     return img.resize((w, h), Image.BICUBIC)
+
+
+def __scale_long_edge(img, target_length):
+    ow, oh = img.size
+    if ow >= oh:
+        if ow == target_length or ow <= target_length:
+            return img
+        else:
+            ratio = oh / ow
+            return img.resize((target_length, int(ratio * target_length)),
+                              Image.BICUBIC)
+
+    else:
+        if oh == target_length or oh <= target_length:
+            return img
+        else:
+            ratio = ow / oh
+            return img.resize((int(ratio * target_length), target_length),
+                              Image.BICUBIC)

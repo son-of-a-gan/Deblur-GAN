@@ -1,3 +1,11 @@
+# VEGAN
+
+For testing
+
+```
+python vegan_deblur.py --dataroot <PATH_TO_BLUR_IMAGES_FOLDER> --model test --dataset_mode single --learn_residual --resize_or_crop scale_long_edge_x --loadSizeX 1024 --name <EXPERIMENT_NAME_IN_CHECKPOINTS_FOLDER> --which_epoch <latest OR EPOCH_NUMBER>
+```
+
 # DeblurGAN
 [arXiv Paper Version](https://arxiv.org/pdf/1711.07064.pdf)
 
