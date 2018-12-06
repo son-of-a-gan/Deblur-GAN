@@ -50,8 +50,9 @@ class AlignedDataset(BaseDataset):
                 Image.BICUBIC)
 
         # DAVID[2]: Make it a tensor to normalize it, then make it a PIL image again
-        AB = self.transform(AB)
-        AB = self.transformToPIL(AB)
+        #AB = self.transform(AB)
+        #AB = self.transformToPIL(AB)
+
         w_total = AB.width
         w = int(w_total / 2)
         h = AB.height
@@ -75,14 +76,53 @@ class AlignedDataset(BaseDataset):
         B = B.resize((self.opt.fineSize, self.opt.fineSize), Image.BICUBIC)
         
         # PIL -> Tensor
-        A = self.transformToTensor(A)
-        B = self.transformToTensor(B)
+        A = self.transform(A)
+        B = self.transform(B)
+
+        # DAVID[2]:
+        #Normalize A to have a mean of 0.5, and a standard deviation of 0.5
+        '''
+        mu = 0.5
+        std = 0.5
+        
+        #for each channel find mean and standard deviation
+        AB = self.transformToTensor(AB)
+        means = []
+        stds = []
+        for c in range(0, A.shape[0]):
+          #find mean and standard for each channel, store for future use on image B
+          mu_i = torch.mean(AB[c, :, :])
+          sig_i = torch.std(AB[c, :, :])
+          means.append(mu_i)
+          stds.append(sig_i)
+
+          pdb.set_trace()
+
+          test = std*(AB[c, :, :] - mu_i)/sig_i + mu
+
+        #Normalize A with the same mean and standard deviation as AB
+        for c in range(0, A.shape[0]):
+          mu_i = means[c]
+          sig_i = stds[c]
+
+          A[c, :, :] = std*(A[c, :, :] - mu_i)/sig_i + mu
+
+
+        #Normalize B with the same mean and standard deviation as A
+        for c in range(0, B.shape[0]):
+          #find mean and standard for each channel, store for future use on image B
+          mu_i = means[c]
+          sig_i = stds[c]
+
+          B[c, :, :] = std*(B[c, :, :] - mu_i)/sig_i + mu
+
 
         if (not self.opt.no_flip) and random.random() < 0.5:
             idx = [i for i in range(A.size(2) - 1, -1, -1)]
             idx = torch.LongTensor(idx)
             A = A.index_select(2, idx)
             B = B.index_select(2, idx)
+        '''
 
         return {'A': A, 'B': B,
                 'A_paths': AB_path, 'B_paths': AB_path}
