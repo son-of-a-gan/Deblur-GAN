@@ -57,17 +57,19 @@ class ScaledPerceptualLoss():
     self.contentFuncs = self.contentFunc(f_layers)
       
   def get_loss(self, fakeIm, realIm):
-    losses = []
     
+    numFeatureLayers = len(self.contentFuncs)
+
     inputFake = fakeIm
     inputReal = realIm
+    loss = 0
     for i, model in enumerate(self.contentFuncs):
       f_fake = model.forward(inputFake)
       f_real = model.forward(inputReal)
       f_real_no_grad = f_real.detach()
 
-      loss = self.criterion(f_fake, f_real_no_grad)
-      losses.append(loss)
+      loss_i = self.criterion(f_fake.clone(), f_real_no_grad.clone())
+      loss = loss + loss_i
 
       inputFake = f_fake
       inputReal = f_real
@@ -79,11 +81,8 @@ class ScaledPerceptualLoss():
     # as if had the vanilla perceptual loss.  For the final loss let's just average 
     # the three losses
     
-    totLoss = 0
-    for l in losses:
-      totLoss += l
 
-    return  totLoss/len(losses)
+    return  loss
 	
 class PerceptualLoss():
 
