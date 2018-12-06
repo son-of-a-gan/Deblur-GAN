@@ -6,6 +6,7 @@ from data.base_dataset import BaseDataset
 from data.image_folder import make_dataset
 from PIL import Image
 import numpy as np
+import pdb
 
 class AlignedDataset(BaseDataset):
     def initialize(self, opt):
@@ -20,8 +21,13 @@ class AlignedDataset(BaseDataset):
         transform_list = [transforms.ToTensor(),
                           transforms.Normalize((0.5, 0.5, 0.5),
                                                (0.5, 0.5, 0.5))]
+        transform_list = [transforms.ToTensor()]
+
+
 
         self.transform = transforms.Compose(transform_list)
+        self.transformToPIL = transforms.ToPILImage()
+        self.transformToTensor = transforms.ToTensor()
 
     def __getitem__(self, index):
         AB_path = self.AB_paths[index]
@@ -43,6 +49,9 @@ class AlignedDataset(BaseDataset):
                 (self.opt.loadSizeY * 2, int(aspect_ratio * self.opt.loadSizeY * 2)),
                 Image.BICUBIC)
 
+        # DAVID[2]: Make it a tensor to normalize it, then make it a PIL image again
+        AB = self.transform(AB)
+        AB = self.transformToPIL(AB)
         w_total = AB.width
         w = int(w_total / 2)
         h = AB.height
@@ -66,8 +75,8 @@ class AlignedDataset(BaseDataset):
         B = B.resize((self.opt.fineSize, self.opt.fineSize), Image.BICUBIC)
         
         # PIL -> Tensor
-        A = self.transform(A)
-        B = self.transform(B)
+        A = self.transformToTensor(A)
+        B = self.transformToTensor(B)
 
         if (not self.opt.no_flip) and random.random() < 0.5:
             idx = [i for i in range(A.size(2) - 1, -1, -1)]
