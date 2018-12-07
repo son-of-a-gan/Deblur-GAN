@@ -5,7 +5,7 @@ import torch
 from data.base_dataset import BaseDataset
 from data.image_folder import make_dataset
 from PIL import Image
-
+import numpy as np
 
 class AlignedDataset(BaseDataset):
     def initialize(self, opt):
@@ -26,8 +26,11 @@ class AlignedDataset(BaseDataset):
     def __getitem__(self, index):
         AB_path = self.AB_paths[index]
         AB = Image.open(AB_path).convert('RGB')
-        # AB = AB.resize(
-        #     (self.opt.loadSizeX * 2, self.opt.loadSizeY), Image.BICUBIC)
+        
+        # DAVID[1]: Sample image height from ~N(360,100), by default
+        resizeY = int(np.random.normal(self.opt.loadSizeY, self.opt.loadSizeYSigma))
+        resizeY = max(self.opt.fineSize, resizeY) # lower bound
+        
         # AARON: change to keep original aspect ratio, use square crop afterwards
         # by default self.opt.loadSizeY = 360 < self.opt.loadSizeX,
         # if the image is in potrait, scale the shorter edge to 360 * 2 = 720
@@ -35,12 +38,12 @@ class AlignedDataset(BaseDataset):
         if width / 2 > height:
             aspect_ratio = width / height
             AB = AB.resize(
-                (int(aspect_ratio * self.opt.loadSizeY), self.opt.loadSizeY),
+                (int(aspect_ratio * resizeY), resizeY),
                 Image.BICUBIC)
         else:
             aspect_ratio = height / width
             AB = AB.resize(
-                (self.opt.loadSizeY * 2, int(aspect_ratio * self.opt.loadSizeY * 2)),
+                (resizeY * 2, int(aspect_ratio * resizeY * 2)),
                 Image.BICUBIC)
 
         AB = self.transform(AB)
