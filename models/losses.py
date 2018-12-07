@@ -13,6 +13,24 @@ import pdb
 # Functions
 ###############################################################################
 
+class SmoothnessLoss():
+	def initialize(self, loss):
+		# self.criterion = loss
+		pass
+
+	def get_loss(self, fakeIm, realIm):
+		#pdb.set_trace()
+		batch_size = fakeIm.shape[0]
+		fake_grad = np.array(np.gradient(fakeIm.detach().cpu().numpy(), axis=(2,3)))
+		fake_grad = np.swapaxes(fake_grad, 0 ,1)
+		real_grad = np.array(np.gradient(realIm.detach().cpu().numpy(), axis=(2,3)))
+		real_grad = np.swapaxes(real_grad, 0 ,1)
+
+		np_loss = np.linalg.norm((np.exp(-1 * real_grad) * fake_grad).reshape(batch_size, -1), axis=1)
+		loss = torch.from_numpy(np_loss).cuda()
+
+		return loss
+
 class ContentLoss():
 	def initialize(self, loss):
 		self.criterion = loss
@@ -235,10 +253,13 @@ class DiscLossWGANGP(DiscLossLS):
 def init_loss(opt, tensor):
 	disc_loss = None
 	content_loss = None
+	smoothness_loss = None
 	
 	if opt.model == 'content_gan':
 		content_loss = ScaledPerceptualLoss()
 		content_loss.initialize(nn.MSELoss())
+		smoothness_loss = SmoothnessLoss()
+
 	elif opt.model == 'pix2pix':
 		content_loss = ContentLoss()
 		content_loss.initialize(nn.L1Loss())
@@ -254,4 +275,8 @@ def init_loss(opt, tensor):
 	else:
 		raise ValueError("GAN [%s] not recognized." % opt.gan_type)
 	disc_loss.initialize(opt, tensor)
+<<<<<<< HEAD
 	return disc_loss, content_loss
+=======
+	return disc_loss, content_loss, smoothness_loss
+>>>>>>> origin/smoothness_loss
