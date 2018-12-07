@@ -100,7 +100,7 @@ class ConditionalGAN(BaseModel):
         self.loss_G_Content = self.contentLoss.get_loss(
             self.fake_B, self.real_B) * self.opt.lambda_A
 
-        self.loss_G_Smoothness = self.smoothnessLoss.get_loss(self.fake_B, self.real_B)
+        self.loss_G_Smoothness = 15 * self.smoothnessLoss.get_loss(self.fake_B, self.real_B)
 
         self.loss_G = self.loss_G_GAN + self.loss_G_Content + self.loss_G_Smoothness
 
