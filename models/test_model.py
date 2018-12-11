@@ -12,7 +12,8 @@ class TestModel(BaseModel):
     def initialize(self, opt):
         assert(not opt.isTrain)
         BaseModel.initialize(self, opt)
-        self.input_A = self.Tensor(opt.batchSize, opt.input_nc, opt.fineSize, opt.fineSize)
+        self.input_A = self.Tensor(
+            opt.batchSize, opt.input_nc, opt.fineSize, opt.fineSize)
 
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf,
                                       opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids, False,
@@ -33,7 +34,7 @@ class TestModel(BaseModel):
         self.image_paths = input['A_paths']
 
     def test(self):
-        self.real_A = Variable(self.input_A, volatile=True)
+        self.real_A = Variable(self.input_A)
         self.fake_B = self.netG.forward(self.real_A)
 
     # get image paths
