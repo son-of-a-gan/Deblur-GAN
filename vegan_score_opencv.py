@@ -7,7 +7,6 @@ import ntpath
 import torch
 import torch.nn as nn
 import argparse
-import cv2
 
 from data.data_loader import CreateDataLoader
 from data.double_dataset import DoubleDatasetLoaderPath
@@ -46,15 +45,15 @@ if __name__ == "__main__":
             size_path = data['size_path']
 
             # load the images
-            gt_img = cv2.imread(gt_path[0], 0)
-            fake_img = cv2.imread(fake_path[0], 0)
-            size_img = cv2.imread(size_path[0], 0)
+            gt_img = Image.open(gt_path[0]).convert('L')
+            fake_img = Image.open(fake_path[0]).convert('L')
+            size_img = Image.open(size_path[0]).convert('L')
 
             # resize the images
-            gt_img = cv2.resize(gt_img, size_img.shape)
-            fake_img = cv2.resize(fake_img, size_img.shape)
+            gt_img = gt_img.resize(size_img.size)
+            fake_img = fake_img.resize(size_img.size)
 
-            # get the fft, maybe shift?
+            # get the fft, and shift
             gt_fft = np.fft.fft2(gt_img)
             gt_shift_fft = np.fft.fftshift(gt_fft)
             gt_mag_spec = 20 * np.log(np.abs(gt_shift_fft))
@@ -64,8 +63,7 @@ if __name__ == "__main__":
             fake_mag_spec = 20 * np.log(np.abs(fake_shift_fft))
 
             # keep count of the norm
-            # dataset_loss += np.linalg.norm(gt_fft - fake_fft)
-            dataset_loss += np.linalg.norm(gt_mag_spec - fake_mag_spec)
+            dataset_loss += np.linalg.norm(fake_mag_spec - gt_mag_spec)
             iters += 1
 
     # find the dataset loss
